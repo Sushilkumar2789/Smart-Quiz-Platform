@@ -1,0 +1,370 @@
+
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Smart Quiz Platform</title>
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;
+ font-family:Arial,sans-serif;
+ background:#eef2ff;
+ color:#172554;
+}
+header{
+ background:linear-gradient(120deg,#1e3a8a,#6366f1);
+ color:white;
+ text-align:center;
+ padding:25px 12px;
+}
+header h1{margin:0 0 10px}
+main{
+ max-width:650px;
+ margin:25px auto;
+ padding:15px;
+}
+.card{
+ background:white;
+ border-radius:16px;
+ padding:22px;
+ margin-bottom:20px;
+ box-shadow:0 5px 20px #0001;
+}
+button{
+ border:0;
+ border-radius:10px;
+ padding:14px;
+ cursor:pointer;
+ font-size:16px;
+}
+.category{
+ display:block;
+ width:100%;
+ margin:12px 0;
+ background:#e0e7ff;
+ color:#1e40af;
+ font-weight:bold;
+}
+.category:hover{background:#c7d2fe}
+.option{
+ display:block;
+ width:100%;
+ text-align:left;
+ margin:10px 0;
+ background:#f1f5f9;
+ color:#172554;
+}
+.option:disabled{opacity:1}
+.correct{background:#bbf7d0!important}
+.wrong{background:#fecaca!important}
+.primary{
+ background:#2563eb;
+ color:white;
+ width:100%;
+ margin-top:12px;
+}
+.stats{
+ display:flex;
+ justify-content:space-between;
+ gap:10px;
+ font-weight:bold;
+}
+#timer{color:#dc2626}
+#feedback{font-weight:bold;line-height:1.5}
+.hidden{display:none}
+footer{
+ text-align:center;
+ padding:20px;
+ color:#64748b;
+}
+</style>
+</head>
+<body>
+
+<header>
+<h1>🧠 Smart Quiz Platform</h1>
+<p>Banking • SSC • Railway</p>
+</header>
+
+<main>
+<section id="home" class="card">
+<h2>Choose Your Exam</h2>
+<p>Select a category to start your quiz.</p>
+<button class="category" onclick="startQuiz('banking')">
+🏦 Banking Quiz
+</button>
+<button class="category" onclick="startQuiz('ssc')">
+📚 SSC Quiz
+</button>
+<button class="category" onclick="startQuiz('railway')">
+🚆 Railway Quiz
+</button>
+</section>
+
+<section id="quiz" class="card hidden">
+<div class="stats">
+<span id="progress"></span>
+<span id="timer"></span>
+</div>
+<h2 id="question"></h2>
+<div id="options"></div>
+<p id="feedback" aria-live="polite"></p>
+<button id="next" class="primary hidden" onclick="nextQuestion()">
+Next Question →
+</button>
+</section>
+
+<section id="result" class="card hidden">
+<h2>🎉 Quiz Completed!</h2>
+<h1 id="score"></h1>
+<p id="message"></p>
+<button class="primary" onclick="showHome()">
+Try Another Quiz
+</button>
+</section>
+</main>
+
+<footer>
+Smart Quiz Platform © 2026
+</footer>
+
+<script>
+const questions = {
+ banking:[
+  {
+   q:"What is the full form of RBI?",
+   o:[
+    "Reserve Bank of India",
+    "Regional Bank of India",
+    "Rural Bank of India",
+    "Royal Bank of India"
+   ],
+   a:0
+  },
+  {
+   q:"In which year was RBI established?",
+   o:["1947","1935","1950","1969"],
+   a:1
+  },
+  {
+   q:"What is the full form of ATM?",
+   o:[
+    "Automatic Transfer Machine",
+    "Automated Teller Machine",
+    "Advanced Transaction Method",
+    "Automatic Trading Machine"
+   ],
+   a:1
+  },
+  {
+   q:"What is the full form of NEFT?",
+   o:[
+    "National Electronic Funds Transfer",
+    "National Easy Fund Transaction",
+    "New Electronic Finance Transfer",
+    "National Exchange Fund Transfer"
+   ],
+   a:0
+  },
+  {
+   q:"Which institution issues most banknotes in India?",
+   o:["SBI","SEBI","RBI","NABARD"],
+   a:2
+  }
+ ],
+ ssc:[
+  {
+   q:"What is the capital of India?",
+   o:["Mumbai","New Delhi","Kolkata","Chennai"],
+   a:1
+  },
+  {
+   q:"Who wrote India's national anthem?",
+   o:[
+    "Mahatma Gandhi",
+    "Rabindranath Tagore",
+    "Premchand",
+    "Bankim Chandra Chatterjee"
+   ],
+   a:1
+  },
+  {
+   q:"What is the chemical formula of water?",
+   o:["CO2","O2","H2O","NaCl"],
+   a:2
+  },
+  {
+   q:"How many sides does a hexagon have?",
+   o:["5","6","7","8"],
+   a:1
+  },
+  {
+   q:"Which planet is known as the Red Planet?",
+   o:["Venus","Jupiter","Mars","Saturn"],
+   a:2
+  }
+ ],
+ railway:[
+  {
+   q:"In which year did India's first passenger train run?",
+   o:["1853","1905","1947","1835"],
+   a:0
+  },
+  {
+   q:"Between which places did India's first passenger train run?",
+   o:[
+    "Delhi and Agra",
+    "Bori Bunder and Thane",
+    "Patna and Gaya",
+    "Howrah and Delhi"
+   ],
+   a:1
+  },
+  {
+   q:"What is the full form of IRCTC?",
+   o:[
+    "Indian Railway Catering and Tourism Corporation",
+    "Indian Rail Coach and Travel Company",
+    "Indian Railway Central Ticket Corporation",
+    "Indian Railway Catering and Transport Council"
+   ],
+   a:0
+  },
+  {
+   q:"What does PNR stand for in railway reservations?",
+   o:[
+    "Passenger Number Record",
+    "Passenger Name Record",
+    "Public Network Reservation",
+    "Passenger National Register"
+   ],
+   a:1
+  },
+  {
+   q:"Which gauge is predominantly used by Indian Railways?",
+   o:[
+    "Narrow gauge",
+    "Metre gauge",
+    "Broad gauge",
+    "Standard gauge"
+   ],
+   a:2
+  }
+ ]
+};
+
+let currentQuestions=[];
+let index=0;
+let marks=0;
+let seconds=30;
+let interval=null;
+let answered=false;
+
+function show(id){
+ ["home","quiz","result"].forEach(x=>{
+  document.getElementById(x).classList.toggle("hidden",x!==id);
+ });
+}
+
+function startQuiz(type){
+ clearInterval(interval);
+ currentQuestions=[...questions[type]];
+ index=0;
+ marks=0;
+ show("quiz");
+ loadQuestion();
+}
+
+function loadQuestion(){
+ clearInterval(interval);
+ answered=false;
+ seconds=30;
+ const item=currentQuestions[index];
+ document.getElementById("progress").textContent=
+ "Question "+(index+1)+"/"+currentQuestions.length;
+ document.getElementById("question").textContent=item.q;
+ document.getElementById("feedback").textContent="";
+ document.getElementById("next").classList.add("hidden");
+
+ const container=document.getElementById("options");
+ container.innerHTML="";
+ item.o.forEach((option,i)=>{
+  const btn=document.createElement("button");
+  btn.className="option";
+  btn.textContent=(i+1)+". "+option;
+  btn.onclick=()=>answer(i);
+  container.appendChild(btn);
+ });
+
+ updateTimer();
+ interval=setInterval(()=>{
+  seconds--;
+  updateTimer();
+  if(seconds<=0){
+   answer(-1);
+  }
+ },1000);
+}
+
+function updateTimer(){
+ document.getElementById("timer").textContent=
+ "⏱ "+seconds+"s";
+}
+
+function answer(choice){
+ if(answered)return;
+ answered=true;
+ clearInterval(interval);
+ const item=currentQuestions[index];
+ const buttons=document.querySelectorAll(".option");
+
+ buttons.forEach((btn,i)=>{
+  btn.disabled=true;
+  if(i===item.a)btn.classList.add("correct");
+  if(i===choice&&choice!==item.a)
+   btn.classList.add("wrong");
+ });
+
+ const feedback=document.getElementById("feedback");
+ if(choice===item.a){
+  marks++;
+  feedback.textContent="✅ Correct Answer!";
+ }else if(choice===-1){
+  feedback.textContent="⏰ Time Up! Correct: "+item.o[item.a];
+ }else{
+  feedback.textContent="❌ Incorrect! Correct: "+item.o[item.a];
+ }
+ document.getElementById("next").classList.remove("hidden");
+}
+
+function nextQuestion(){
+ index++;
+ if(index<currentQuestions.length){
+  loadQuestion();
+ }else{
+  finishQuiz();
+ }
+}
+
+function finishQuiz(){
+ clearInterval(interval);
+ show("result");
+ const total=currentQuestions.length;
+ const percent=Math.round(marks/total*100);
+ document.getElementById("score").textContent=
+ marks+" / "+total+" ("+percent+"%)";
+ document.getElementById("message").textContent=
+ percent>=80?"Excellent performance!":
+ percent>=50?"Good effort! Keep practicing.":
+ "Keep learning and try again!";
+}
+
+function showHome(){
+ clearInterval(interval);
+ show("home");
+}
+</script>
+</body>
+</html>
